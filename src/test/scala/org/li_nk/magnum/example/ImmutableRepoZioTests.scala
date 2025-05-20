@@ -70,7 +70,7 @@ class ImmutableRepoZioTests extends PgZioTests:
         topSpeed = 211,
         vinNumber = None,
         created = OffsetDateTime.parse("2024-11-24T22:17:32.000000000Z"),
-        relatedCarIds = None
+        relatedCarIds = Some(Vector(101))
       )
     )
 
@@ -127,7 +127,7 @@ class ImmutableRepoZioTests extends PgZioTests:
             query.run()
       assertNoDiff(
         query.frag.sqlString,
-        "select model, id, top_speed, vin, color, created from car where top_speed > ?"
+        "select model, id, top_speed, vin, created, related_car_ids from car where top_speed > ?"
       )
       assert(query.frag.params == Vector(minSpeed))
       assert(result == allCars.tail)
@@ -144,7 +144,7 @@ class ImmutableRepoZioTests extends PgZioTests:
             query.run()
       assertNoDiff(
         query.frag.sqlString,
-        "select c.model, c.id, c.top_speed, c.vin, c.color, c.created from car c where c.top_speed > ?"
+        "select c.model, c.id, c.top_speed, c.vin, c.created, c.related_car_ids from car c where c.top_speed > ?"
       )
       assert(query.frag.params == Vector(minSpeed))
       assert(result == allCars.tail)
