@@ -2,6 +2,8 @@ package org.li_nk.magnum.example
 
 import com.augustnagro.magnum.magzio.Transactor
 import com.augustnagro.magnum.pg.PgCodec.given
+
+import java.time.OffsetDateTime
 //import com.augustnagro.magnum.pg.enums.PgStringToScalaEnumSqlArrayCodec
 import com.augustnagro.magnum._
 //import munit.{FunSuite, Location}
@@ -11,7 +13,7 @@ import java.sql.Connection
 import java.time.OffsetDateTime
 import scala.util.{Success, Using}
 
-class ImmutableRepoZioTests extends PgZioTests:
+class RepoZioTests extends PgZioTests:
   /*
   def immutableRepoZioTests(
       suite: FunSuite,
@@ -44,8 +46,18 @@ class ImmutableRepoZioTests extends PgZioTests:
         relatedCarIds: Option[Vector[Long]]
     ) derives DbCodec
 
+    case class CarCreator(
+                model: String,
+                topSpeed: Int,
+                @SqlName("vin") vinNumber: Option[Int],
+                created: OffsetDateTime,
+                relatedCarIds: Option[Vector[Long]]
+                         ) derives DbCodec
+
     val carRepo = ImmutableRepo[Car, Long]
+    val mutRepo = Repo[CarCreator,Car ,Long]
     val car = TableInfo[Car, Car, Long]
+    val mutCar = TableInfo[CarCreator, Car, Long]
 
     val allCars = Vector(
       Car(
@@ -182,3 +194,14 @@ class ImmutableRepoZioTests extends PgZioTests:
               it.map(_.id).size
             )
       assert(carsCount == Success(3))
+
+    test("insert returning"):
+      val cc = CarCreator("wrx", 150, Some(999),OffsetDateTime.parse("2024-11-24T22:17:31.000000000Z"),None)
+      val insertCar: Car =
+        runIO:
+          xa().connect:
+            mutRepo.insertReturning(cc)
+
+      assert(insertCar.model == "wrx")
+
+
